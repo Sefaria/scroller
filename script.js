@@ -1,11 +1,10 @@
-// Assuming phrases.js contains an array named "phrases"
 
 const container = document.getElementById("container");
 
 // Function to create a line of text with offset
-function createLine(line, num) {
+function createLine(line, num, data) {
   const offset = num * 40;
-  const phrase_count = phrases.length;
+  const phrase_count = data.length;
   let index= offset % phrase_count;
 
   // Repeat phrases to fill the line
@@ -13,7 +12,7 @@ function createLine(line, num) {
   let new_color = null;
   while (line.offsetWidth < (container.offsetWidth - 200)) {
     const span = document.createElement("span");
-    span.textContent = phrases[index];
+    span.textContent = data[index];
     span.classList.add("phrase")
     new_color = getColor(last_color);
     span.style.color = new_color;
@@ -24,14 +23,16 @@ function createLine(line, num) {
   return line;
 }
 
+function add_lines(data) {
 // Create multiple lines with offset
-let odd = true;
-for (let i = 0; i < 40; i++) {
-  let line = container.appendChild(document.createElement("div"));
-  line.classList.add("line")
-  line.classList.add(odd?"odd":"even");
-  odd = !odd;
-  container.appendChild(createLine(line, i));
+  let odd = true;
+  for (let i = 0; i < 40; i++) {
+    let line = container.appendChild(document.createElement("div"));
+    line.classList.add("line")
+    line.classList.add(odd ? "odd" : "even");
+    odd = !odd;
+    container.appendChild(createLine(line, i, data));
+  }
 }
 
 // Variables for dragging
