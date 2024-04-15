@@ -25,9 +25,12 @@ function createLine(line, num) {
 }
 
 // Create multiple lines with offset
+let odd = true;
 for (let i = 0; i < 40; i++) {
   let line = container.appendChild(document.createElement("div"));
   line.classList.add("line")
+  line.classList.add(odd?"odd":"even");
+  odd = !odd;
   container.appendChild(createLine(line, i));
 }
 
@@ -35,23 +38,27 @@ for (let i = 0; i < 40; i++) {
 let isDragging = false;
 let currentX;
 let initialX;
-
+let animationEngine = autoScroll; // default
 // Event listeners for dragging
-container.addEventListener('mousedown', dragStart);
-container.addEventListener('mouseup', dragEnd);
-container.addEventListener('mouseleave', dragEnd);
-container.addEventListener('mousemove', drag);
 
 // Auto-scrolling function
 function autoScroll() {
-  console.log("scrolling")
+  animationEngine = autoScroll;
   if(isDragging) { return; }
   container.style.left = container.style.left || 0;
   container.style.left = `${parseFloat(container.style.left) + .2}px`;
-  requestAnimationFrame(autoScroll);
+  requestAnimationFrame(animationEngine);
 }
 
-autoScroll();
+let lineScroll = 0;
+function autoScrollLines() {
+  animationEngine = autoScrollLines;
+  lineScroll = lineScroll + .2;
+  if(isDragging) { return; }
+  document.querySelectorAll('.even').forEach(e => e.style.transform = "translateX(" + lineScroll + "px)");
+  document.querySelectorAll('.odd').forEach(e => e.style.transform = "translateX(-" + lineScroll + "px)");
+  requestAnimationFrame(animationEngine);
+}
 
 // Drag functions
 function dragStart(e) {
@@ -64,7 +71,7 @@ function dragEnd() {
   initialX = currentX;
   isDragging = false;
   container.style.cursor = 'grab';
-  autoScroll();
+  animationEngine();
 }
 
 function drag(e) {
