@@ -12,14 +12,9 @@
         <input type="text" class="search-input" placeholder="Search...">
     </div>
     <script src="phrases.js"></script>
-    <script src="script.js"></script>
+    <script src="class-script.js"></script>
     <script>
-      add_lines(phrases);
-      container.addEventListener('mousedown', dragStart);
-      container.addEventListener('mouseup', dragEnd);
-      container.addEventListener('mouseleave', dragEnd);
-      container.addEventListener('mousemove', drag);
-      autoScroll();
+      new TextScroller();
     </script>
 </body>
 </html>
