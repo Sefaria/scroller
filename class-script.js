@@ -25,7 +25,7 @@ class TextScroller {
 
     let lastColor = null;
     let newColor = null;
-    while (line.offsetWidth < (this.container.offsetWidth - 300)) {
+    while (line.offsetWidth < (this.container.offsetWidth - 400)) {
       let targets = this.includeHebrew?["en","he"]:["en"]
           targets.forEach(lang => {
             const span = document.createElement("span");
