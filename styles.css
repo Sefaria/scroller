@@ -6,6 +6,8 @@ body, html {
 
 a {
   text-decoration: none;
+  text-transform: uppercase;
+  font-family: sans-serif;
 }
 
 #container {
