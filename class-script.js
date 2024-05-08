@@ -69,13 +69,13 @@ class TextScroller {
       return;
     }
     this.container.style.left = this.container.style.left || 0;
-    this.container.style.left = `${parseFloat(this.container.style.left) + 0.2}px`;
+    this.container.style.left = `${parseFloat(this.container.style.left) + 0.1}px`;
     requestAnimationFrame(this.animationEngine);
   }
 
 
   autoScrollLines() {
-    this.lineScroll = this.lineScroll + 0.2;
+    this.lineScroll = this.lineScroll + 0.05;
     if (this.isDragging) {
       return;
     }
