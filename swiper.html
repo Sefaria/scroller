@@ -84,7 +84,7 @@
         <div id="topic1" class="topic current"></div>
         <div id="topic2" class="topic next"></div>
         <div id="instructions">
-            Swipe left/right or use arrow keys
+            Swipe right for new topic, left for Sefaria. Use arrow keys for the same.
         </div>
     </div>
 
@@ -210,9 +210,9 @@
         app.addEventListener('touchend', (e) => {
             if (Math.abs(distX) > 50) { // Minimum swipe distance
                 if (distX > 0) {
-                    navigateToSefaria();
+                    swapTopics(); // Right swipe (LTR) loads new topic
                 } else {
-                    swapTopics();
+                    navigateToSefaria(); // Left swipe (RTL) navigates to Sefaria
                 }
             }
             startX = 0;
@@ -222,9 +222,9 @@
         // Keyboard support
         document.addEventListener('keydown', (event) => {
             if (event.key === 'ArrowLeft') {
-                swapTopics();
+                swapTopics(); // Left arrow now loads new topic
             } else if (event.key === 'ArrowRight') {
-                navigateToSefaria();
+                navigateToSefaria(); // Right arrow now navigates to Sefaria
             }
         });
 
