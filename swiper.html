@@ -59,6 +59,7 @@
             max-height: 50vh;
             display: block;
             margin: 0 auto;
+            pointer-events: none; /* Prevent image from interfering with swipes */
         }
         p {
             font-size: 16px;
@@ -76,6 +77,7 @@
             text-align: center;
             font-size: 14px;
             color: #666;
+            pointer-events: none; /* Prevent instructions from interfering with swipes */
         }
     </style>
 </head>
@@ -97,7 +99,11 @@
         let currentIndex = 0;
         let topics = [null, null];
         let startX = 0;
+        let startY = 0;
         let distX = 0;
+        let distY = 0;
+        let startTime = 0;
+        let elapsedTime = 0;
 
         async function fetchRandomTopic() {
             try {
@@ -199,16 +205,22 @@
 
         app.addEventListener('touchstart', (e) => {
             startX = e.touches[0].clientX;
-        });
+            startY = e.touches[0].clientY;
+            startTime = new Date().getTime();
+            e.preventDefault(); // Prevent default to ensure swipe works everywhere
+        }, { passive: false });
 
         app.addEventListener('touchmove', (e) => {
-            if (e.touches[0].clientY > startX) return; // Ignore vertical scrolling
             distX = e.touches[0].clientX - startX;
-            e.preventDefault(); // Prevent default only for horizontal swipes
-        });
+            distY = e.touches[0].clientY - startY;
+            if (Math.abs(distX) > Math.abs(distY)) {
+                e.preventDefault(); // Prevent default only for horizontal swipes
+            }
+        }, { passive: false });
 
         app.addEventListener('touchend', (e) => {
-            if (Math.abs(distX) > 50) { // Minimum swipe distance
+            elapsedTime = new Date().getTime() - startTime;
+            if (Math.abs(distX) > 50 && Math.abs(distY) < 100 && elapsedTime < 300) { // Minimum swipe distance and maximum swipe time
                 if (distX > 0) {
                     swapTopics(); // Right swipe (LTR) loads new topic
                 } else {
@@ -216,7 +228,9 @@
                 }
             }
             startX = 0;
+            startY = 0;
             distX = 0;
+            distY = 0;
         });
 
         // Keyboard support
