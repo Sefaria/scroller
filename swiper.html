@@ -34,6 +34,7 @@
             box-sizing: border-box;
             transition: transform 0.3s ease-out;
             overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
         .topic.current {
             transform: translateX(0);
@@ -82,7 +83,7 @@
         <div id="topic1" class="topic current"></div>
         <div id="topic2" class="topic next"></div>
         <div id="instructions">
-            Use left/right arrow keys or swipe left/right
+            Swipe left/right or use arrow keys
         </div>
     </div>
 
@@ -120,11 +121,8 @@
 
         function parseMarkdown(markdown) {
             let html = markdown;
-            // Convert bold
             html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-            // Convert italic
             html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
-            // Convert links
             html = html.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2">$1</a>');
             return html;
         }
@@ -153,7 +151,7 @@
         }
 
         async function swapTopics() {
-            if (topicElements[0].classList.contains('transitioning') || 
+            if (topicElements[0].classList.contains('transitioning') ||
                 topicElements[1].classList.contains('transitioning')) {
                 return; // Prevent multiple transitions
             }
@@ -164,42 +162,26 @@
             topicElements[oldIndex].classList.add('transitioning');
             topicElements[newIndex].classList.add('transitioning');
 
-            // Move current topic to the right
             topicElements[oldIndex].style.transform = 'translateX(100%)';
-            
-            // Move new topic from left to center
             topicElements[newIndex].style.transform = 'translateX(0)';
 
-            // Update classes
             topicElements[oldIndex].classList.remove('current');
             topicElements[oldIndex].classList.add('previous');
             topicElements[newIndex].classList.remove('next');
             topicElements[newIndex].classList.add('current');
 
-            // Wait for the transition to complete
             await new Promise(resolve => setTimeout(resolve, 300));
 
-            // Hide the old topic
             topicElements[oldIndex].classList.add('hidden');
-
-            // Reset the old topic's position without transition
             topicElements[oldIndex].style.transition = 'none';
             topicElements[oldIndex].style.transform = 'translateX(-100%)';
-
-            // Force reflow
             void topicElements[oldIndex].offsetWidth;
-
-            // Restore the transition
             topicElements[oldIndex].style.transition = '';
 
-            // Show the old topic again
             topicElements[oldIndex].classList.remove('hidden', 'previous', 'transitioning');
             topicElements[oldIndex].classList.add('next');
-
-            // Clean up new topic
             topicElements[newIndex].classList.remove('transitioning');
 
-            // Update current index
             currentIndex = newIndex;
 
             await preloadNextTopic();
@@ -212,14 +194,20 @@
             }
         }
 
-        // Initialize Hammer.js
-        const hammer = new Hammer(document.getElementById('app'));
+        // Initialize Hammer.js with proper touch action
+        const hammerManager = new Hammer.Manager(document.getElementById('app'), {
+            touchAction: 'pan-y'
+        });
+
+        // Add horizontal swipe recognition
+        const swipe = new Hammer.Swipe({ direction: Hammer.DIRECTION_HORIZONTAL, threshold: 10 });
+        hammerManager.add(swipe);
 
         // Swipe left for new topic
-        hammer.on('swipeleft', swapTopics);
+        hammerManager.on('swipeleft', swapTopics);
 
         // Swipe right to navigate to Sefaria
-        hammer.on('swiperight', navigateToSefaria);
+        hammerManager.on('swiperight', navigateToSefaria);
 
         // Keyboard support
         document.addEventListener('keydown', (event) => {
