@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Sefaria Topic Swiper</title>
     <style>
         body {
@@ -23,6 +23,7 @@
             background-color: white;
             overflow: hidden;
             position: relative;
+            touch-action: pan-y;
         }
         .topic {
             position: absolute;
@@ -87,14 +88,16 @@
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
     <script>
+        const app = document.getElementById('app');
         const topicElements = [
             document.getElementById('topic1'),
             document.getElementById('topic2')
         ];
         let currentIndex = 0;
         let topics = [null, null];
+        let startX = 0;
+        let distX = 0;
 
         async function fetchRandomTopic() {
             try {
@@ -194,20 +197,27 @@
             }
         }
 
-        // Initialize Hammer.js with proper touch action
-        const hammerManager = new Hammer.Manager(document.getElementById('app'), {
-            touchAction: 'pan-y'
+        app.addEventListener('touchstart', (e) => {
+            startX = e.touches[0].clientX;
         });
 
-        // Add horizontal swipe recognition
-        const swipe = new Hammer.Swipe({ direction: Hammer.DIRECTION_HORIZONTAL, threshold: 10 });
-        hammerManager.add(swipe);
+        app.addEventListener('touchmove', (e) => {
+            if (e.touches[0].clientY > startX) return; // Ignore vertical scrolling
+            distX = e.touches[0].clientX - startX;
+            e.preventDefault(); // Prevent default only for horizontal swipes
+        });
 
-        // Swipe left for new topic
-        hammerManager.on('swipeleft', swapTopics);
-
-        // Swipe right to navigate to Sefaria
-        hammerManager.on('swiperight', navigateToSefaria);
+        app.addEventListener('touchend', (e) => {
+            if (Math.abs(distX) > 50) { // Minimum swipe distance
+                if (distX > 0) {
+                    navigateToSefaria();
+                } else {
+                    swapTopics();
+                }
+            }
+            startX = 0;
+            distX = 0;
+        });
 
         // Keyboard support
         document.addEventListener('keydown', (event) => {
