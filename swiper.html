@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sefaria Topic Swiper</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f0f0;
+            overflow-x: hidden;
+        }
+        #app {
+            width: 100%;
+            max-width: 400px;
+            height: 100vh;
+            background-color: white;
+            overflow: hidden;
+            position: relative;
+        }
+        .topic {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+            transition: transform 0.3s ease-out;
+            overflow-y: auto;
+        }
+        .topic.current {
+            transform: translateX(0);
+        }
+        .topic.next {
+            transform: translateX(-100%);
+        }
+        .topic.previous {
+            transform: translateX(100%);
+        }
+        .topic.hidden {
+            display: none;
+        }
+        h1 {
+            font-size: 24px;
+            margin-top: 0;
+            text-align: center;
+        }
+        img {
+            max-width: 100%;
+            max-height: 50vh;
+            display: block;
+            margin: 0 auto;
+        }
+        p {
+            font-size: 16px;
+            line-height: 1.5;
+        }
+        #loading {
+            text-align: center;
+            padding: 20px;
+        }
+        #instructions {
+            position: absolute;
+            bottom: 10px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div id="topic1" class="topic current"></div>
+        <div id="topic2" class="topic next"></div>
+        <div id="instructions">
+            Use left/right arrow keys or swipe left/right
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
+    <script>
+        const topicElements = [
+            document.getElementById('topic1'),
+            document.getElementById('topic2')
+        ];
+        let currentIndex = 0;
+        let topics = [null, null];
+
+        async function fetchRandomTopic() {
+            try {
+                const response = await fetch('https://www.sefaria.org/api/texts/random-by-topic');
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Error fetching topic:', error);
+                return null;
+            }
+        }
+
+        function isValidTopic(topic) {
+            return topic.topic.image && topic.topic.image.image_uri;
+        }
+
+        async function getValidTopic() {
+            let topic;
+            do {
+                topic = await fetchRandomTopic();
+            } while (topic && !isValidTopic(topic));
+            return topic;
+        }
+
+        function parseMarkdown(markdown) {
+            let html = markdown;
+            // Convert bold
+            html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            // Convert italic
+            html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            // Convert links
+            html = html.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2">$1</a>');
+            return html;
+        }
+
+        function renderTopic(topic, element) {
+            if (!topic) {
+                element.innerHTML = '<p>Error loading topic. Please try again.</p>';
+                return;
+            }
+
+            let html = `<h1>${topic.topic.primaryTitle.en}</h1>`;
+            html += `<img src="${topic.topic.image.image_uri}" alt="${topic.topic.primaryTitle.en}">`;
+
+            if (topic.topic.description && topic.topic.description.en) {
+                const parsedDescription = parseMarkdown(topic.topic.description.en);
+                html += `<p>${parsedDescription}</p>`;
+            }
+
+            element.innerHTML = html;
+        }
+
+        async function preloadNextTopic() {
+            const nextIndex = (currentIndex + 1) % 2;
+            topics[nextIndex] = await getValidTopic();
+            renderTopic(topics[nextIndex], topicElements[nextIndex]);
+        }
+
+        async function swapTopics() {
+            if (topicElements[0].classList.contains('transitioning') || 
+                topicElements[1].classList.contains('transitioning')) {
+                return; // Prevent multiple transitions
+            }
+
+            const oldIndex = currentIndex;
+            const newIndex = (currentIndex + 1) % 2;
+
+            topicElements[oldIndex].classList.add('transitioning');
+            topicElements[newIndex].classList.add('transitioning');
+
+            // Move current topic to the right
+            topicElements[oldIndex].style.transform = 'translateX(100%)';
+            
+            // Move new topic from left to center
+            topicElements[newIndex].style.transform = 'translateX(0)';
+
+            // Update classes
+            topicElements[oldIndex].classList.remove('current');
+            topicElements[oldIndex].classList.add('previous');
+            topicElements[newIndex].classList.remove('next');
+            topicElements[newIndex].classList.add('current');
+
+            // Wait for the transition to complete
+            await new Promise(resolve => setTimeout(resolve, 300));
+
+            // Hide the old topic
+            topicElements[oldIndex].classList.add('hidden');
+
+            // Reset the old topic's position without transition
+            topicElements[oldIndex].style.transition = 'none';
+            topicElements[oldIndex].style.transform = 'translateX(-100%)';
+
+            // Force reflow
+            void topicElements[oldIndex].offsetWidth;
+
+            // Restore the transition
+            topicElements[oldIndex].style.transition = '';
+
+            // Show the old topic again
+            topicElements[oldIndex].classList.remove('hidden', 'previous', 'transitioning');
+            topicElements[oldIndex].classList.add('next');
+
+            // Clean up new topic
+            topicElements[newIndex].classList.remove('transitioning');
+
+            // Update current index
+            currentIndex = newIndex;
+
+            await preloadNextTopic();
+        }
+
+        function navigateToSefaria() {
+            const currentTopic = topics[currentIndex];
+            if (currentTopic && currentTopic.topic.slug) {
+                window.location.href = `https://www.sefaria.org/topics/${currentTopic.topic.slug}`;
+            }
+        }
+
+        // Initialize Hammer.js
+        const hammer = new Hammer(document.getElementById('app'));
+
+        // Swipe left for new topic
+        hammer.on('swipeleft', swapTopics);
+
+        // Swipe right to navigate to Sefaria
+        hammer.on('swiperight', navigateToSefaria);
+
+        // Keyboard support
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'ArrowLeft') {
+                swapTopics();
+            } else if (event.key === 'ArrowRight') {
+                navigateToSefaria();
+            }
+        });
+
+        // Initial load
+        (async function() {
+            topics[currentIndex] = await getValidTopic();
+            renderTopic(topics[currentIndex], topicElements[currentIndex]);
+            await preloadNextTopic();
+            topicElements[currentIndex].classList.add('current');
+            topicElements[(currentIndex + 1) % 2].classList.add('next');
+        })();
+    </script>
+</body>
+</html>
