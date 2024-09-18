@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jewish Topics Image Grid</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(5, 1fr);
+            width: 100vmin;
+            height: 100vmin;
+        }
+        .grid-item {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        .grid-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: opacity 1s ease;
+        }
+        .grid-item .new-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+        }
+        .topic-slug {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 20%;
+            background-color: rgba(245, 245, 220, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            font-size: 1.5vmin;
+            text-align: center;
+            padding: 0 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="grid" class="grid"></div>
+
+    <script>
+        const topics = [
+            {"slug":"fasting","image.image_uri":"https://storage.googleapis.com/img.sefaria.org/topics/214502-838e0242-3489-11ef-ab00-c6e7b7615a9b.gif"},
+            {"slug":"halakhah","image.image_uri":"https://storage.googleapis.com/img.sefaria.org/topics/214628-27b1c4e6-6336-11ef-a356-ea6c1291c455.gif"},
+            {"slug":"science","image.image_uri":"https://storage.googleapis.com/img.sefaria.org/topics/214628-bad4f3ea-441b-11ef-9088-6a117ca997bd.gif"},
+            {"slug":"letters","image.image_uri":"https://storage.googleapis.com/img.sefaria.org/topics/166904-0809d366-3cfa-11ef-87fb-6ed5b08af807.gif"},
+            {"slug":"animals","image.image_uri":"https://storage.googleapis.com/img.sefaria.org/topics/166904-37071f06-3cfb-11ef-9061-a24c77549e9a.gif"},
+            {"slug":"plants","image.image_uri":"https://storage.googleapis.com/img.sefaria.org/topics/214502-a33750d2-4391-11ef-a05e-26947519eb14.gif"},
+            {"slug":"midian","image.image_uri":"https://storage.googleapis.com/img.sefaria.org/topics/214502-c78d0c68-4843-11ef-bdd6-be598a5f7937.gif"},
+            {"slug":"moab","image.image_uri":"https://storage.googleapis.com/img.sefaria.org/topics/166904-a988a16c-4273-11ef-8979-e2664669f508.gif"},
+            {"slug":"music","image.image_uri":"https://storage.googleapis.com/img.sefaria.org/topics/166904-df666a1a-07b5-11ef-9cc3-2ee253cdd8bb.gif"},
+            {"slug":"teaching","image.image_uri":"https://storage.googleapis.com/img.sefaria.org/topics/214628-16817ed4-3481-11ef-8cf7-12e4593012d0.gif"},
+            {"slug":"mezuzah","image.image_uri":"https://storage.googleapis.com/img.sefaria.org/topics/214628-ec4b48b2-3466-11ef-beda-12e4593012d0.gif"},
+            {"slug":"harmful-forces","image.image_uri":"https://storage.googleapis.com/img.sefaria.org/topics/214502-3f7a93b0-6092-11ef-9100-12319e8383ae.gif"},
+            {"slug":"havdalah","image.image_uri":"https://storage.googleapis.com/img.sefaria.org/topics/166904-7fd4841c-0aab-11ef-813e-cac96b8f95df.gif"},
+            {"slug":"abels-sacrifice","image.image_uri":"https://storage.googleapis.com/img.sefaria.org/topics/214502-fdb85ec4-4b5d-11ef-9892-42b01f3df0a2.gif"},
+            {"slug":"abel","image.image_uri":"https://storage.googleapis.com/img.sefaria.org/topics/214502-591c1510-3ea9-11ef-a0b5-6ed5b08af807.gif"},
+            {"slug":"haggadah","image.image_uri":"https://storage.googleapis.com/img.sefaria.org/topics/166904-b43ebb70-3943-11ef-9345-86e53f62f5fc.gif"},
+            {"slug":"hagar","image.image_uri":"https://storage.googleapis.com/img.sefaria.org/topics/166904-2ffe44ca-3164-11ef-bee1-1640f422513b.gif"},
+            {"slug":"myrtles","image.image_uri":"https://storage.googleapis.com/img.sefaria.org/topics/214628-1c52cd24-44f1-11ef-aea3-daa5deb91754.gif"},
+            {"slug":"parents","image.image_uri":"https://storage.googleapis.com/img.sefaria.org/topics/214628-e087cd0a-31fc-11ef-8eee-62d17775dc74.gif"},
+            {"slug":"hoshana-rabbah","image.image_uri":"https://storage.googleapis.com/img.sefaria.org/topics/214502-bc980572-33d2-11ef-8347-8634edee6361.gif"},
+            {"slug":"welcoming-guests","image.image_uri":"https://storage.googleapis.com/img.sefaria.org/topics/214502-e882957e-5959-11ef-948e-f207d188304b.gif"},
+            {"slug":"forgiveness-(מחילה)","image.image_uri":"https://storage.googleapis.com/img.sefaria.org/topics/214502-b8d96046-6075-11ef-a269-36155e9e6c72.gif"},
+            {"slug":"machloket","image.image_uri":"https://storage.googleapis.com/img.sefaria.org/topics/214628-ac389674-5cea-11ef-a037-2225f7730c75.gif"},
+            {"slug":"thoughts","image.image_uri":"https://storage.googleapis.com/img.sefaria.org/topics/166904-fc06abdc-4a4d-11ef-a7cc-d21038570855.gif"},
+            {"slug":"micah","image.image_uri":"https://storage.googleapis.com/img.sefaria.org/topics/214502-90b06f82-41d6-11ef-9fc2-d2c288a05dcc.gif"},
+            {"slug":"mikhal","image.image_uri":"https://storage.googleapis.com/img.sefaria.org/topics/214502-090a3af8-41d7-11ef-87c9-d2c288a05dcc.gif"},
+            {"slug":"circumcision","image.image_uri":"https://storage.googleapis.com/img.sefaria.org/topics/166904-e1aae370-2c84-11ef-af3e-2a82ed982905.gif"},
+            {"slug":"mayim-achronim","image.image_uri":"https://storage.googleapis.com/img.sefaria.org/topics/214628-d9716442-36eb-11ef-9090-f2ddc1e73818.gif"},
+            {"slug":"water","image.image_uri":"https://storage.googleapis.com/img.sefaria.org/topics/166904-22ac37a6-3d2f-11ef-967d-6ed5b08af807.gif"},
+            {"slug":"death","image.image_uri":"https://storage.googleapis.com/img.sefaria.org/topics/166904-c3c84c70-0ad4-11ef-828e-ce6fa0b21c30.gif"},
+            {"slug":"colors","image.image_uri":"https://storage.googleapis.com/img.sefaria.org/topics/166904-a6b4cd66-483c-11ef-aceb-5e09f3cafa5e.gif"},
+            {"slug":"fish","image.image_uri":"https://storage.googleapis.com/img.sefaria.org/topics/214628-65e645e0-3aad-11ef-a13b-466cfd7059c3.gif"},
+            {"slug":"the-patriarchs","image.image_uri":"https://storage.googleapis.com/img.sefaria.org/topics/214502-3bc3faaa-348b-11ef-bbdc-12e4593012d0.gif"},
+            {"slug":"covenant-with-the-patriarchs","image.image_uri":"https://storage.googleapis.com/img.sefaria.org/topics/214502-19064e34-4a8c-11ef-b283-06ff46bc61fd.gif"},
+            {"slug":"spring","image.image_uri":"https://storage.googleapis.com/img.sefaria.org/topics/214502-9715b67e-4416-11ef-aded-daa5deb91754.gif"},
+            {"slug":"abigail","image.image_uri":"https://storage.googleapis.com/img.sefaria.org/topics/214502-d84186ec-3f83-11ef-8d2f-a24c77549e9a.gif"},
+            {"slug":"mishkan","image.image_uri":"https://storage.googleapis.com/img.sefaria.org/topics/214628-e4c24932-49b1-11ef-b05b-0a9da7b6fd79.gif"},
+            {"slug":"mishloach-manot","image.image_uri":"https://storage.googleapis.com/img.sefaria.org/topics/166904-6e53edc6-e17b-11ee-99b1-fed04cd22c37.gif"},
+            {"slug":"mishnah","image.image_uri":"https://storage.googleapis.com/img.sefaria.org/topics/214628-b9aba74c-3cb0-11ef-a4e1-a24c77549e9a.gif"},
+            {"slug":"mountains","image.image_uri":"https://storage.googleapis.com/img.sefaria.org/topics/214502-20755d0a-4383-11ef-8fd0-daa5deb91754.gif"}
+        ];
+
+        let displayedTopics = new Set();
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function createGrid() {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = ''; // Clear existing grid items
+            const shuffledTopics = [...topics];
+            shuffleArray(shuffledTopics);
+            displayedTopics.clear();
+
+            for (let i = 0; i < 25; i++) {
+                const topic = shuffledTopics[i];
+                displayedTopics.add(topic.slug);
+                const gridItem = document.createElement('div');
+                gridItem.className = 'grid-item';
+                gridItem.innerHTML = `
+                    <img src="${topic['image.image_uri']}" alt="${topic.slug}">
+                    <div class="topic-slug">${topic.slug}</div>
+                `;
+                gridItem.addEventListener('mouseover', () => {
+                    gridItem.querySelector('.topic-slug').style.opacity = '1';
+                });
+                gridItem.addEventListener('mouseout', () => {
+                    gridItem.querySelector('.topic-slug').style.opacity = '0';
+                });
+                gridItem.addEventListener('click', () => {
+                    window.location.href = `https://www.sefaria.org/topics/${topic.slug}`;
+                });
+                grid.appendChild(gridItem);
+            }
+        }
+
+        function getNewTopic() {
+            const availableTopics = topics.filter(topic => !displayedTopics.has(topic.slug));
+            if (availableTopics.length === 0) {
+                // If all topics have been displayed, reset the set and start over
+                displayedTopics.clear();
+                return topics[Math.floor(Math.random() * topics.length)];
+            }
+            return availableTopics[Math.floor(Math.random() * availableTopics.length)];
+        }
+
+        function replaceRandomImage() {
+            const gridItems = document.querySelectorAll('.grid-item');
+            const randomIndex = Math.floor(Math.random() * gridItems.length);
+            const gridItem = gridItems[randomIndex];
+            
+            const oldTopic = gridItem.querySelector('img').alt;
+            displayedTopics.delete(oldTopic);
+
+            const newTopic = getNewTopic();
+            displayedTopics.add(newTopic.slug);
+
+            const newImage = document.createElement('img');
+            newImage.src = newTopic['image.image_uri'];
+            newImage.alt = newTopic.slug;
+            newImage.className = 'new-image';
+
+            newImage.onload = () => {
+                gridItem.appendChild(newImage);
+                setTimeout(() => {
+                    newImage.style.opacity = '1';
+                    gridItem.querySelector('img:not(.new-image)').style.opacity = '0';
+                }, 50);
+
+                setTimeout(() => {
+                    gridItem.innerHTML = `
+                        <img src="${newTopic['image.image_uri']}" alt="${newTopic.slug}">
+                        <div class="topic-slug">${newTopic.slug}</div>
+                    `;
+                }, 1000);
+            };
+
+            gridItem.querySelector('.topic-slug').textContent = newTopic.slug;
+        }
+
+        function resizeGrid() {
+            const grid = document.getElementById('grid');
+            const size = Math.min(window.innerWidth, window.innerHeight);
+            grid.style.width = `${size}px`;
+            grid.style.height = `${size}px`;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            resizeGrid();
+            createGrid();
+            setInterval(replaceRandomImage, 4000);
+        });
+
+        window.addEventListener('resize', () => {
+            resizeGrid();
+        });
+    </script>
+</body>
